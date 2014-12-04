@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 public class TestUI : MonoBehaviour {
 
@@ -16,46 +17,64 @@ public class TestUI : MonoBehaviour {
 	}
 
     private GameObject CreateCanvas() {
-        GameObject o = new GameObject();
-        o.name = "Canvas";
-        Canvas canvas = o.AddComponent<Canvas>();
-        CanvasScaler scaler = o.AddComponent<CanvasScaler>();
-        GraphicRaycaster raycaster = o.AddComponent<GraphicRaycaster>();
+        GameObject canvasObject = new GameObject();
+        canvasObject.name = "Canvas";
+        Canvas canvas = canvasObject.AddComponent<Canvas>();
+        CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
+        GraphicRaycaster raycaster = canvasObject.AddComponent<GraphicRaycaster>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        return o;
+
+        CreateEventSystem();
+
+        return canvasObject;
+    }
+
+    private GameObject CreateEventSystem() {
+        GameObject eventSystemObject = new GameObject();
+        eventSystemObject.name = "EventSystem";
+        eventSystemObject.AddComponent<EventSystem>();
+        eventSystemObject.AddComponent<StandaloneInputModule>();
+        eventSystemObject.AddComponent<TouchInputModule>();
+        return eventSystemObject;
     }
 
     private GameObject CreateButton(string label, string textureName, UnityAction action) {
-        GameObject o = new GameObject();
-        o.name = "Button";
+        GameObject buttonObject = new GameObject();
+        buttonObject.name = "Button";
         
         Sprite sprite = Sprite.Create(
                 Resources.Load<Texture2D>(textureName), 
                 new Rect(0, 0, 256, 256), 
                 new Vector2(.5f, .5f));
-        Image image = o.AddComponent<Image>();
+        Image image = buttonObject.AddComponent<Image>();
         image.sprite = sprite;
 
+        Button button = buttonObject.AddComponent<Button>();
+        button.onClick.AddListener(action);
+        RectTransform rectTransform = button.GetComponent<RectTransform>();
+
+        //TODO figure out how to layout properly!
+        //rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Bottom, 100, 256);
+        //rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 100, 256);
         
 
-        Button button = o.AddComponent<Button>();
-        button.onClick.AddListener(action);
         GameObject text = CreateText(label);
-        Attach(child: text, parent: o);
-        return o;
+        Attach(child: text, parent: buttonObject);
+
+        return buttonObject;
 
     }
 
     private GameObject CreateText(string label)
     {
-        GameObject o = new GameObject();
-        o.name = "Text";
-        Text text = o.AddComponent<Text>();
-        text.text = label;
-        Font arial = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-        text.font = arial;
+        GameObject textObject = new GameObject();
+        textObject.name = "Text";
 
-        return o;
+        Text text = textObject.AddComponent<Text>();
+        text.text = label;
+        text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
+
+        return textObject;
     }
 
     public static void Attach(GameObject child, GameObject parent) {
